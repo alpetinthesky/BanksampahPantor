@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Sampah Bersih - Setor Sampah</title>
+    <!-- Bootstrap CSS untuk tampilan rapi -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Formulir Setor Bank Sampah</h4>
+                </div>
+                <div class="card-body">
+                    <form id="bankSampahForm">
+                        <!-- Data Diri -->
+                        <div class="mb-3">
+                            <label for="nama" class="form-label">Nama Lengkap</label>
+                            <input type="text" class="form-control" id="nama" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="alamat" class="form-label">Alamat</label>
+                            <textarea class="form-control" id="alamat" rows="2" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="hp" class="form-label">Nomor WhatsApp / HP</label>
+                            <input type="tel" class="form-control" id="hp" required>
+                        </div>
+
+                        <hr>
+                        <h5 class="mb-3">Pilihan Sampah (Maksimal 10 Jenis)</h5>
+                        <p class="text-muted small">Anda bisa menambahkan hingga 10 jenis sampah dalam satu kali setor.</p>
+                        
+                        <!-- Kontainer untuk daftar pilihan sampah -->
+                        <div id="sampah-container">
+                            <!-- Baris Pertama (Default) -->
+                            <div class="row sampah-row mb-2 align-items-center">
+                                <div class="col-7">
+                                    <select class="form-select jenis-sampah" required>
+                                        <option value="">-- Pilih Jenis Sampah --</option>
+                                        <option value="Botol Plastik (Rp 3.000/kg)">Botol Plastik (Rp 3.000/kg)</option>
+                                        <option value="Gelas Plastik (Rp 3.000/kg)">Gelas Plastik (Rp 3.000/kg)</option>
+                                        <option value="Kardus (Rp 5.000/kg)">Kardus (Rp 5.000/kg)</option>
+                                        <option value="Minyak Jelantah (Rp 4.000/kg)">Minyak Jelantah (Rp 4.000/kg)</option>
+                                        <option value="Emberan (Rp 1.000/kg)">Emberan (Rp 1.000/kg)</option>
+                                        <option value="Kaleng (Rp 1.300/kg)">Kaleng (Rp 1.300/kg)</option>
+                                        <option value="Galon Le Mineral (Rp 3.000/kg)">Galon Le Mineral (Rp 3.000/kg)</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <input type="number" step="0.1" min="0.1" class="form-control berat-sampah" placeholder="Berat (Kg/L)" required>
+                                </div>
+                                <div class="col-1">
+                                    <!-- Tombol hapus tidak ada di baris pertama -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tombol Tambah Pilihan -->
+                        <button type="button" id="tambahBarisBtn" class="btn btn-outline-primary btn-sm mt-2 mb-4">+ Tambah Jenis Sampah</button>
+
+                        <div class="d-grid">
+                            <button type="submit" id="submitBtn" class="btn btn-success btn-lg">Kirim Setoran Sampah</button>
+                        </div>
+                    </form>
+                    
+                    <div id="responseMessage" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const MAX_SELECTIONS = 10;
+    const container = document.getElementById('sampah-container');
+    const tambahBtn = document.getElementById('tambahBarisBtn');
+    const form = document.getElementById('bankSampahForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Pemetaan harga satuan yang akurat sesuai pilihan sampah
+    const daftarHarga = {
+        "Botol Plastik (Rp 3.000/kg)": 3000,
+        "Gelas Plastik (Rp 3.000/kg)": 3000,
+        "Kardus (Rp 5.000/kg)": 5000,
+        "Minyak Jelantah (Rp 4.000/kg)": 4000,
+        "Emberan (Rp 1.000/kg)": 1000,
+        "Kaleng (Rp 1.300/kg)": 1300,
+        "Galon Le Mineral (Rp 3.000/kg)": 3000
+    };
+
+    // Fungsi untuk menambah baris pilihan sampah
+    tambahBtn.addEventListener('click', function() {
+        const currentRows = container.getElementsByClassName('sampah-row').length;
+        if (currentRows >= MAX_SELECTIONS) {
+            alert('Maksimal pilihan sampah adalah 10 kali dalam satu transaksi!');
+            return;
+        }
+
+        const newRow = document.createElement('div');
+        newRow.className = 'row sampah-row mb-2 align-items-center';
+        newRow.innerHTML = `
+            <div class="col-7">
+                <select class="form-select jenis-sampah" required>
+                    <option value="">-- Pilih Jenis Sampah --</option>
+                    <option value="Botol Plastik (Rp 3.000/kg)">Botol Plastik (Rp 3.000/kg)</option>
+                    <option value="Gelas Plastik (Rp 3.000/kg)">Gelas Plastik (Rp 3.000/kg)</option>
+                    <option value="Kardus (Rp 5.000/kg)">Kardus (Rp 5.000/kg)</option>
+                    <option value="Minyak Jelantah (Rp 4.000/kg)">Minyak Jelantah (Rp 4.000/kg)</option>
+                    <option value="Emberan (Rp 1.000/kg)">Emberan (Rp 1.000/kg)</option>
+                    <option value="Kaleng (Rp 1.300/kg)">Kaleng (Rp 1.300/kg)</option>
+                    <option value="Galon Le Mineral (Rp 3.000/kg)">Galon Le Mineral (Rp 3.000/kg)</option>
+                </select>
+            </div>
+            <div class="col-4">
+                <input type="number" step="0.1" min="0.1" class="form-control berat-sampah" placeholder="Berat (Kg/L)" required>
+            </div>
+            <div class="col-1">
+                <button type="button" class="btn btn-danger btn-sm hapus-baris">X</button>
+            </div>
+        `;
+        container.appendChild(newRow);
+
+        if (container.getElementsByClassName('sampah-row').length >= MAX_SELECTIONS) {
+            tambahBtn.style.display = 'none';
+        }
+    });
+
+    // Event Delegation untuk menghapus baris
+    container.addEventListener('click', function(e) {
+        if (e.target.classList.contains('hapus-baris')) {
+            e.target.closest('.sampah-row').remove();
+            if (container.getElementsByClassName('sampah-row').length < MAX_SELECTIONS) {
+                tambahBtn.style.display = 'block';
+            }
+        }
+    });
+
+    // Handle Submit Form ke Google Spreadsheet
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Mengirim...';
+
+        const nama = document.getElementById('nama').value;
+        const alamat = document.getElementById('alamat').value;
+        const hp = document.getElementById('hp').value;
+
+        const rows = container.getElementsByClassName('sampah-row');
+        let detailList = [];
+        let estimasiTotalRupiah = 0;
+
+        for (let i = 0; i < rows.length; i++) {
+            let jenis = rows[i].querySelector('.jenis-sampah').value;
+            let berat = parseFloat(rows[i].querySelector('.berat-sampah').value) || 0;
+            
+            detailList.push(`${jenis} (${berat} kg/l)`);
+
+            // Mengambil harga satuan dari objek pemetaan berdasarkan jenis sampah yang dipilih
+            let hargaSatuan = daftarHarga[jenis] || 0;
+
+            // Kalkulasi total rupiah: Harga Satuan × Berat
+            estimasiTotalRupiah += (hargaSatuan * berat);
+        }
+
+        const payload = {
+            nama: nama,
+            alamat: alamat,
+            hp: hp,
+            detailSampah: detailList.join(' | '),
+            totalPoin: 'Rp ' + estimasiTotalRupiah.toLocaleString('id-ID')
+        };
+
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbzcFGVWTG2_1vlfB9U81ysreHaBhgnDp7jXc7ksJMUPqOk6yI85ImTaWV1EDMfMN54tiw/exec';
+
+        fetch(scriptURL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            document.getElementById('responseMessage').innerHTML = `<div class="alert alert-success">Setoran sampah berhasil dikirim dan tersimpan di database! Estimasi nilai: ${payload.totalPoin}</div>`;
+            form.reset();
+            
+            // Reset container kembali ke 1 baris default
+            container.innerHTML = `
+                <div class="row sampah-row mb-2 align-items-center">
+                    <div class="col-7">
+                        <select class="form-select jenis-sampah" required>
+                            <option value="">-- Pilih Jenis Sampah --</option>
+                            <option value="Botol Plastik (Rp 3.000/kg)">Botol Plastik (Rp 3.000/kg)</option>
+                            <option value="Gelas Plastik (Rp 3.000/kg)">Gelas Plastik (Rp 3.000/kg)</option>
+                            <option value="Kardus (Rp 5.000/kg)">Kardus (Rp 5.000/kg)</option>
+                            <option value="Minyak Jelantah (Rp 4.000/kg)">Minyak Jelantah (Rp 4.000/kg)</option>
+                            <option value="Emberan (Rp 1.000/kg)">Emberan (Rp 1.000/kg)</option>
+                            <option value="Kaleng (Rp 1.300/kg)">Kaleng (Rp 1.300/kg)</option>
+                            <option value="Galon Le Mineral (Rp 3.000/kg)">Galon Le Mineral (Rp 3.000/kg)</option>
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <input type="number" step="0.1" min="0.1" class="form-control berat-sampah" placeholder="Berat (Kg/L)" required>
+                    </div>
+                    <div class="col-1"></div>
+                </div>
+            `;
+            tambahBtn.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Kirim Setoran Sampah';
+        })
+        .catch(error => {
+            console.error('Error!', error.message);
+            document.getElementById('responseMessage').innerHTML = `<div class="alert alert-danger">Terjadi kesalahan saat mengirim data.</div>`;
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Kirim Setoran Sampah';
+        });
+    });
+</script>
+
+</body>
+</html>
